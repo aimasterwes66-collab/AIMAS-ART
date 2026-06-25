@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000000">
+<title>AIMAS // PROMPT CONSTRUCT</title>
+<link rel="manifest" href="manifest.json">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#000000;--bg2:#050505;--bg3:#0a0a0a;--bg4:#111111;
+  --fg:#e0e0e0;--fg2:#888888;--fg3:#444444;
+  --cyan:#00e5e5;--cyan2:#00aaaa;--cyan3:#005555;--cyan-glow:rgba(0,229,229,0.15);
+  --red:#ff3333;--green:#00e57f;--yellow:#e5e500;--purple:#aa55ff;--orange:#ff7733;
+  --font:'Share Tech Mono','Courier New',Courier,monospace;
+}
+html,body{background:var(--bg);color:var(--fg);font-family:var(--font);font-weight:700;text-transform:uppercase;letter-spacing:1px;min-height:100vh;overflow-x:hidden;cursor:none}
+::selection{background:var(--cyan);color:var(--bg)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--cyan3)}
+::-webkit-scrollbar-thumb:hover{background:var(--cyan)}
+
+/* SCANLINES */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,229,0.012) 2px,rgba(0,229,229,0.012) 4px)}
+
+
+
+/* SPLASH */
+.splash{position:fixed;inset:0;background:var(--bg);z-index:20000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s}
+.splash.hidden{opacity:0;pointer-events:none}
+.splash-brand{font-size:56px;letter-spacing:16px;color:var(--cyan);font-weight:700;text-shadow:0 0 20px var(--cyan-glow),0 0 40px rgba(0,229,229,0.3)}
+.splash-sub{font-size:11px;color:var(--fg3);letter-spacing:6px;margin-top:16px}
+.splash-loader{margin-top:40px;width:240px;height:3px;background:var(--bg3);position:relative;overflow:hidden}
+.splash-loader::after{content:'';position:absolute;left:-50%;width:50%;height:100%;background:var(--cyan);animation:load 0.8s ease-in-out infinite}
+@keyframes load{0%{left:-50%}100%{left:100%}}
+
+/* HEADER */
+.header{border-bottom:1px solid var(--cyan3);padding:14px 20px;background:var(--bg2);position:sticky;top:0;z-index:100}
+.header-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.brand{font-size:22px;font-weight:700;letter-spacing:6px;color:var(--cyan);text-shadow:0 0 10px var(--cyan-glow)}
+.brand span{color:var(--fg)}
+.brand small{font-size:9px;color:var(--fg3);letter-spacing:2px;display:block;margin-top:4px;text-transform:uppercase}
+.header-stats{display:flex;gap:20px;font-size:10px;color:var(--fg2);letter-spacing:2px}
+.header-stats span{color:var(--cyan)}
+
+/* GRID */
+.main{display:grid;grid-template-columns:1fr 420px;gap:0;min-height:calc(100vh - 62px)}
+@media(max-width:960px){.main{grid-template-columns:1fr}}
+
+/* LEFT PANEL */
+.slots-panel{padding:14px;overflow-y:auto;max-height:calc(100vh - 62px)}
+.slots-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.slots-title{font-size:9px;letter-spacing:4px;color:var(--fg3)}
+.slots-controls{display:flex;gap:6px}
+
+/* SMART RANDOMIZE BAR */
+.smart-bar{padding:10px;border:1px solid var(--cyan3);margin-bottom:10px;background:var(--bg2)}
+.smart-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.smart-input{flex:1;min-width:180px;padding:7px 10px;font-family:var(--font);font-size:10px;font-weight:700;text-transform:uppercase;background:var(--bg);color:var(--fg);border:1px solid var(--fg3);outline:none;letter-spacing:1px}
+.smart-input:focus{border-color:var(--cyan);box-shadow:0 0 8px var(--cyan-glow)}
+.smart-input::placeholder{color:var(--fg3);text-transform:uppercase}
+.slider-group{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.slider-label{font-size:8px;color:var(--fg3);letter-spacing:2px}
+.knob{width:70px;height:4px;background:var(--bg3);outline:none;border:none;-webkit-appearance:none;appearance:none}
+.knob::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--cyan);cursor:none;border:2px solid var(--fg);box-shadow:0 0 8px var(--cyan-glow)}
+.knob::-moz-range-thumb{width:14px;height:14px;background:var(--cyan);cursor:none;border:2px solid var(--fg);box-shadow:0 0 8px var(--cyan-glow)}
+.slider-val{font-size:9px;color:var(--cyan);min-width:30px;text-align:center}
+
+/* MODE BUTTONS */
+.modes-row{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.modes-label{font-size:8px;color:var(--fg3);letter-spacing:2px;padding:4px 0;margin-right:4px}
+
+/* BUTTONS */
+.btn{background:var(--bg);color:var(--fg);border:1px solid var(--fg3);padding:6px 14px;font-family:var(--font);font-size:9px;font-weight:700;cursor:none;letter-spacing:2px;text-transform:uppercase;transition:all 0.1s}
+.btn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 8px var(--cyan-glow)}
+.btn.primary{background:var(--cyan);color:var(--bg);border-color:var(--cyan)}
+.btn.primary:hover{background:var(--cyan2);box-shadow:0 0 12px var(--cyan-glow)}
+.btn.mode{padding:5px 10px;font-size:8px;letter-spacing:1px}
+.btn.mode:hover{box-shadow:0 0 6px var(--cyan-glow)}
+.btn.danger:hover{border-color:var(--red);color:var(--red);box-shadow:0 0 8px rgba(255,51,51,0.3)}
+.btn.active-mode{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 8px var(--cyan-glow) inset}
+
+/* CATEGORY TABS */
+.cat-tabs{display:flex;flex-wrap:wrap;gap:1px;margin-bottom:10px;padding:3px;border:1px solid var(--bg3);background:var(--bg3)}
+.cat-tab{padding:4px 7px;font-size:9px;letter-spacing:1px;cursor:none;background:var(--bg);color:var(--fg3);border:1px solid transparent;font-family:var(--font);font-weight:700;text-transform:uppercase}
+.cat-tab:hover{color:var(--fg);border-color:var(--fg3)}
+.cat-tab.active{color:var(--bg);background:var(--cyan);border-color:var(--cyan)}
+
+/* SLOT ROW */
+.slot-row{display:grid;grid-template-columns:28px 1fr 90px 44px 24px;gap:6px;align-items:center;padding:6px 10px;border:1px solid var(--bg3);margin-bottom:3px;transition:all 0.1s;position:relative}
+.slot-row:hover{border-color:var(--cyan3);background:var(--bg2)}
+.slot-row.active{border-color:var(--cyan);background:var(--bg2);box-shadow:0 0 6px var(--cyan-glow)}
+.slot-letter{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--bg3);color:var(--fg);border:1px solid currentColor}
+.slot-select{background:var(--bg);color:var(--fg);border:1px solid var(--fg3);padding:5px 7px;font-family:var(--font);font-size:10px;font-weight:700;text-transform:uppercase;cursor:none;outline:none;width:100%;letter-spacing:0.5px}
+.slot-select:focus{border-color:var(--cyan)}
+.slot-select option{background:var(--bg);color:var(--fg);font-size:10px;text-transform:uppercase}
+.weight-slider{-webkit-appearance:none;width:100%;height:3px;background:var(--bg3);outline:none}
+.weight-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--cyan);cursor:none;border:2px solid var(--bg);box-shadow:0 0 6px var(--cyan-glow)}
+.weight-slider::-moz-range-thumb{width:12px;height:12px;background:var(--cyan);cursor:none;border:2px solid var(--bg);box-shadow:0 0 6px var(--cyan-glow)}
+.weight-value{font-size:9px;color:var(--cyan);text-align:right;min-width:30px;font-family:var(--font);font-weight:700}
+.slot-clear{background:none;border:1px solid var(--bg3);color:var(--fg3);font-family:var(--font);font-size:9px;cursor:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0;font-weight:700}
+.slot-clear:hover{border-color:var(--red);color:var(--red)}
+.slot-tags{padding:0 10px 6px 40px;font-size:8px;color:var(--fg3);letter-spacing:0.5px}
+
+/* TOGGLES */
+.toggle-row{display:flex;align-items:center;gap:16px;margin-bottom:8px;font-size:9px;color:var(--fg2)}
+.toggle-row label{display:flex;align-items:center;gap:4px;cursor:none}
+.toggle-row input[type="checkbox"]{accent-color:var(--cyan);width:12px;height:12px}
+
+/* SEARCH */
+.search-box{width:100%;padding:6px 10px;font-family:var(--font);font-size:10px;font-weight:700;text-transform:uppercase;background:var(--bg);color:var(--fg);border:1px solid var(--fg3);margin-bottom:8px;outline:none;letter-spacing:1px}
+.search-box:focus{border-color:var(--cyan);box-shadow:0 0 8px var(--cyan-glow)}
+.search-box::placeholder{color:var(--fg3);text-transform:uppercase}
+
+/* RIGHT PANEL */
+.output-panel{border-left:1px solid var(--cyan3);background:var(--bg2);display:flex;flex-direction:column;position:sticky;top:62px;height:calc(100vh - 62px)}
+@media(max-width:960px){.output-panel{border-left:none;border-top:1px solid var(--cyan3);position:static;height:auto}}
+.output-header{padding:10px 14px;border-bottom:1px solid var(--cyan3);display:flex;align-items:center;justify-content:space-between}
+.output-title{font-size:9px;letter-spacing:4px;color:var(--cyan)}
+.output-actions{display:flex;gap:6px}
+
+.prompt-display{flex:1;padding:14px;overflow-y:auto;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--fg);font-weight:700}
+.prompt-display .empty{color:var(--fg3);font-style:normal}
+.prompt-display .sep{color:var(--cyan);font-weight:700}
+.prompt-display .weight{color:var(--fg2);font-size:0.8em}
+
+.prompt-raw{padding:10px 14px;border-top:1px solid var(--cyan3);background:var(--bg3);font-size:10px;color:var(--fg2);max-height:120px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;font-weight:700}
+.prompt-raw-label{color:var(--cyan);font-size:8px;letter-spacing:3px;margin-bottom:4px}
+
+.weight-summary{padding:6px 14px;border-top:1px solid var(--cyan3);font-size:9px;color:var(--fg3);letter-spacing:1px}
+.weight-summary span{color:var(--cyan)}
+
+/* PRESETS */
+.presets-section{padding:10px 14px;border-top:1px solid var(--cyan3)}
+.presets-title{font-size:8px;letter-spacing:3px;color:var(--fg3);margin-bottom:6px}
+.preset-list{display:flex;flex-wrap:wrap;gap:3px}
+.preset-chip{padding:3px 8px;font-size:9px;border:1px solid var(--bg3);color:var(--fg2);cursor:none;font-family:var(--font);font-weight:700}
+.preset-chip:hover{border-color:var(--cyan);color:var(--cyan)}
+.preset-chip .del{color:var(--red);margin-left:5px;font-size:8px}
+.preset-chip .del:hover{color:var(--fg)}
+
+/* CORE MODES PANEL */
+.cores-panel{padding:10px 14px;border-top:1px solid var(--cyan3);background:var(--bg3)}
+.cores-title{font-size:8px;letter-spacing:3px;color:var(--cyan);margin-bottom:8px}
+.core-row{display:grid;grid-template-columns:90px 1fr 70px 36px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid var(--bg3)}
+.core-row:last-child{border-bottom:none}
+.core-name{font-size:9px;color:var(--fg);letter-spacing:1px}
+.core-desc{font-size:8px;color:var(--fg3)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:10px 18px;background:var(--cyan);color:var(--bg);font-family:var(--font);font-size:10px;letter-spacing:2px;z-index:10000;transform:translateY(100px);opacity:0;transition:all 0.3s;font-weight:700;text-transform:uppercase}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{background:var(--red);color:var(--fg)}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .slot-row{grid-template-columns:24px 1fr 70px 40px 22px;gap:3px;padding:5px}
+  .brand{font-size:14px;letter-spacing:3px}
+  .splash-brand{font-size:28px;letter-spacing:6px}
+  .main{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR EFFECTS -->
+<!-- REMOVED: cursor halo -->
+
+<!-- SPLASH -->
+<div class="splash" id="splash">
+  <div class="splash-brand">AIMAS</div>
+  <div class="splash-sub">PROMPT CONSTRUCT V2.0</div>
+  <div class="splash-loader"></div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-top">
+    <div class="brand">AIMAS//<span>PROMPT.CONSTRUCT</span><small>01-39 VISUAL MODIFIER ONTOLOGY // 1637 ENTRIES</small></div>
+    <div class="header-stats">
+      <div>CATS: <span id="stat-cats">39</span></div>
+      <div>NODES: <span id="stat-entries">1637</span></div>
+      <div>ACTIVE: <span id="stat-active">0</span>/39</div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- LEFT -->
+  <div class="slots-panel">
+    <div class="slots-header">
+      <div class="slots-title">// CONSTRUCT PROMPT (01-39)</div>
+      <div class="slots-controls">
+        <button class="btn danger" onclick="app.clearAll()">CLEAR</button>
+        <button class="btn" onclick="app.randomize()">RANDOM</button>
+        <button class="btn primary" onclick="app.copyPrompt()">COPY</button>
+      </div>
+    </div>
+
+    <!-- SMART BAR -->
+    <div class="smart-bar">
+      <div class="smart-row">
+        <input type="text" id="conceptInput" class="smart-input" placeholder="CONCEPT (E.G. CYBERPUNK CATHEDRAL, COSMIC HORROR...)" onkeydown="if(event.key==='Enter')app.smartRandomize()">
+        <div class="slider-group">
+          <span class="slider-label">SEMANTIC</span>
+          <input type="range" id="randomnessSlider" class="knob" min="0" max="100" value="50" oninput="document.getElementById('randVal').textContent=this.value+'%';app.updateSmartLabel()">
+          <span id="randVal" class="slider-val">50%</span>
+          <span class="slider-label">RANDOM</span>
+        </div>
+        <div class="slider-group" style="margin-left:8px">
+          <span class="slider-label">CATS</span>
+          <input type="text" id="catCount" class="smart-input" style="width:36px;min-width:36px;text-align:center;padding:5px" maxlength="2" value="" placeholder="##" oninput="this.value=this.value.replace(/[^0-9]/g,'')" title="NUMBER OF CATEGORIES (1-39). LEAVE EMPTY FOR AUTO.">
+          <span class="slider-label">/39</span>
+        </div>
+        <button class="btn primary" style="font-size:9px;padding:7px 16px" onclick="app.smartRandomize()">SMART RANDOMIZE</button>
+      </div>
+      <div class="modes-row">
+        <span class="modes-label">QUICK MODES:</span>
+        <button class="btn mode" id="btn-absurdity" onclick="app.modeRandomize('absurdity')">ABSURDITY</button>
+        <button class="btn mode" id="btn-opposing" onclick="app.modeRandomize('opposing')">OPPOSING</button>
+        <button class="btn mode" id="btn-emotion" onclick="app.modeRandomize('emotion')">EMOTION</button>
+        <button class="btn mode" id="btn-comedy" onclick="app.modeRandomize('comedy')">COMEDY</button>
+        <button class="btn mode" id="btn-classic" onclick="app.modeRandomize('classic')">CLASSIC</button>
+        <button class="btn mode" id="btn-horror" onclick="app.modeRandomize('horror')">HORROR</button>
+        <button class="btn mode" id="btn-beauty" onclick="app.modeRandomize('beauty')">BEAUTY</button>
+      </div>
+    </div>
+
+    <!-- CORE MODES PANEL -->
+    <div class="cores-panel">
+      <div class="cores-title">// CORE MODE ADJUSTMENTS</div>
+      <div class="core-row">
+        <div class="core-name">SEMANTIC</div>
+        <div class="core-desc">CONCEPT-DRIVEN / KEYWORD MATCHING</div>
+        <input type="range" class="knob" id="coreSemantic" min="0" max="100" value="50" oninput="document.getElementById('coreSemVal').textContent=this.value+'%';app.applyCoreSettings()">
+        <span class="slider-val" id="coreSemVal">50%</span>
+      </div>
+      <div class="core-row">
+        <div class="core-name">BALANCE</div>
+        <div class="core-desc">EVEN WEIGHT DISTRIBUTION ACROSS ALL SLOTS</div>
+        <input type="range" class="knob" id="coreBalance" min="0" max="100" value="30" oninput="document.getElementById('coreBalVal').textContent=this.value+'%';app.applyCoreSettings()">
+        <span class="slider-val" id="coreBalVal">30%</span>
+      </div>
+      <div class="core-row">
+        <div class="core-name">EXTREME</div>
+        <div class="core-desc">HIGH-CONTRAST JUXTAPOSITIONS / MAXIMUM TENSION</div>
+        <input type="range" class="knob" id="coreExtreme" min="0" max="100" value="0" oninput="document.getElementById('coreExtVal').textContent=this.value+'%';app.applyCoreSettings()">
+        <span class="slider-val" id="coreExtVal">0%</span>
+      </div>
+      <div class="core-row">
+        <div class="core-name">DENSITY</div>
+        <div class="core-desc">HOW MANY CATEGORIES TO FILL (SPARSE VS DENSE)</div>
+        <input type="range" class="knob" id="coreDensity" min="20" max="100" value="75" oninput="document.getElementById('coreDenVal').textContent=this.value+'%';app.applyCoreSettings()">
+        <span class="slider-val" id="coreDenVal">75%</span>
+      </div>
+      <div class="core-row">
+        <div class="core-name">COHERENCE</div>
+        <div class="core-desc">HOW WELL ENTRIES RELATE TO EACH OTHER</div>
+        <input type="range" class="knob" id="coreCoherence" min="0" max="100" value="40" oninput="document.getElementById('coreCohVal').textContent=this.value+'%';app.applyCoreSettings()">
+        <span class="slider-val" id="coreCohVal">40%</span>
+      </div>
+    </div>
+
+    <input type="text" class="search-box" id="globalSearch" placeholder="SEARCH ALL 1637 MODIFIERS..." oninput="app.search(this.value)">
+
+    <div class="toggle-row">
+      <label><input type="checkbox" id="showWeights" checked onchange="app.renderPrompt()"> SHOW WEIGHTS</label>
+      <label><input type="checkbox" id="useDoubleColon" checked onchange="app.renderPrompt()"> USE :: SYNTAX</label>
+      <label><input type="checkbox" id="autoWeight" checked> AUTO-SUGGEST WEIGHTS</label>
+    </div>
+
+    <div class="cat-tabs" id="catTabs"></div>
+    <div id="slotsContainer"></div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="output-panel">
+    <div class="output-header">
+      <div class="output-title">// PROMPT OUTPUT</div>
+      <div class="output-actions">
+        <button class="btn" onclick="app.copyPrompt()">COPY</button>
+        <button class="btn primary" onclick="app.savePreset()">SAVE</button>
+      </div>
+    </div>
+    <div class="prompt-display" id="promptDisplay"><span class="empty">SELECT MODIFIERS TO BUILD YOUR PROMPT...</span></div>
+    <div class="weight-summary" id="weightSummary">TOTAL WEIGHT: <span>0.0</span> | SEGMENTS: <span>0</span></div>
+    <div class="presets-section">
+      <div class="presets-title">// SAVED PRESETS</div>
+      <div class="preset-list" id="presetList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// === CURSOR HALO ===
+// REMOVED: cursor halo effect per user request
+
+// === APP ===
+const app={
+  corpus:null,slots:{},presets:JSON.parse(localStorage.getItem('aimas_presets')||'[]'),activeTab:'ALL',currentMode:'',
+
+  _allKeys(){return Object.keys(this.corpus?.categories||{}).sort()},
+  _displayNum(key){const keys=this._allKeys();return String(keys.indexOf(key)+1).padStart(2,'0')},
+
+  async init(){
+    try{const r=await fetch('aimas_corpus.json');this.corpus=await r.json()}
+    catch(e){this.showToast('CORPUS LOAD FAILED - USING FALLBACK',true);this.corpus=this.fallbackCorpus()}
+    this.buildSlots();this.renderTabs();this.renderSlots();this.renderPrompt();this.renderPresets();this.updateStats();
+    setTimeout(()=>document.getElementById('splash').classList.add('hidden'),1000);
+  },
+
+  fallbackCorpus(){const c={};for(let i=1;i<=39;i++){const k=String(i).padStart(2,'0');c[k]={name:'CAT '+k,entries:[{name:'M'+k,tags:['default']}]}};return{categories:c}},
+
+  buildSlots(){this._allKeys().forEach((K,idx)=>{const c=this.corpus.categories[K];const num=String(idx+1).padStart(2,'0');this.slots[K]={key:K,num:num,name:c?.name||'CAT '+K,desc:c?.description||'',weight:1,selected:'',entries:c?.entries||[]}})},
+
+  renderTabs(){const t=document.getElementById('catTabs');let h=`<button class="cat-tab ${this.activeTab==='ALL'?'active':''}" onclick="app.filterTab('ALL')">ALL</button>`;this._allKeys().forEach(K=>{const s=this.slots[K];h+=`<button class="cat-tab ${this.activeTab===K?'active':''}" onclick="app.filterTab('${K}')" title="${s.name}">${s.num}<small style="color:var(--fg3);font-size:7px">${s.entries.length}</small></button>`});t.innerHTML=h},
+  filterTab(t){this.activeTab=t;this.renderTabs();this.renderSlots()},
+
+  renderSlots(){const c=document.getElementById('slotsContainer');const ls=this.activeTab==='ALL'?this._allKeys():[this.activeTab];c.innerHTML=ls.map(K=>this.renderSlotRow(K)).join('')},
+
+  renderSlotRow(K){const s=this.slots[K];const o=s.entries.map(e=>`<option value="${e.name}" ${s.selected===e.name?'selected':''}>${e.name}</option>`).join('');const t=s.selected?this.getTags(K,s.selected):'';return`<div class="slot-row ${s.selected?'active':''}" data-key="${K}"><div class="slot-letter" style="color:${s.selected?'var(--cyan)':'var(--fg)'};border-color:${s.selected?'var(--cyan)':'var(--fg3)'}">${s.num}</div><select class="slot-select" onchange="app.setSlot('${K}',this.value)" data-key="${K}"><option value="">-- ${s.name} (${s.entries.length}) --</option>${o}</select><input type="range" class="weight-slider" min="0" max="1" step="0.1" value="${s.weight}" oninput="app.setWeight('${K}',this.value)" ${!s.selected?'disabled style="opacity:0.3"':''}><div class="weight-value" id="w-${K}">${s.selected?s.weight.toFixed(1):'--'}</div><button class="slot-clear" onclick="app.clearSlot('${K}')" ${!s.selected?'disabled style="opacity:0.3"':''}>X</button></div>${s.selected&&t?`<div class="slot-tags">${t}</div>`:''}`},
+
+  getTags(L,n){const e=this.slots[L].entries.find(x=>x.name===n);if(!e)return'';let s='';if(e.tags?.length)s+=`TAGS: ${e.tags.join(', ').toUpperCase()} `;if(e.weight_suggest)s+=`| WT: ::${e.weight_suggest}`;return s},
+
+  setSlot(L,v){this.slots[L].selected=v;if(v&&document.getElementById('autoWeight').checked){const e=this.slots[L].entries.find(x=>x.name===v);if(e?.weight_suggest)this.slots[L].weight=Math.min(1,Math.max(0,e.weight_suggest))}this.renderSlots();this.renderPrompt();this.updateStats()},
+  setWeight(L,v){this.slots[L].weight=parseFloat(v);const el=document.getElementById(`w-${L}`);if(el)el.textContent=parseFloat(v).toFixed(1);this.renderPrompt();this.updateStats()},
+  clearSlot(L){this.slots[L].selected='';this.slots[L].weight=1;this.renderSlots();this.renderPrompt();this.updateStats()},
+
+  clearAll(){Object.keys(this.slots).forEach(L=>{this.slots[L].selected='';this.slots[L].weight=1});this.renderSlots();this.renderPrompt();this.updateStats();this.showToast('ALL CLEARED')},
+
+  // CORE SETTINGS
+  applyCoreSettings(){this.showToast('CORE SETTINGS APPLIED');},
+  getCoreSettings(){return{
+    semantic:parseInt(document.getElementById('coreSemantic').value)/100,
+    balance:parseInt(document.getElementById('coreBalance').value)/100,
+    extreme:parseInt(document.getElementById('coreExtreme').value)/100,
+    density:parseInt(document.getElementById('coreDensity').value)/100,
+    coherence:parseInt(document.getElementById('coreCoherence').value)/100
+  }},
+
+  randomize(){
+    const cs=this.getCoreSettings();
+    const catCountVal=document.getElementById('catCount').value;
+    const keys=this._allKeys();
+    // If catCount specified, pick exactly N categories
+    if(catCountVal){const n=Math.min(39,Math.max(1,parseInt(catCountVal)));const shuffled=keys.sort(()=>Math.random()-0.5);keys.forEach(K=>{this.slots[K].selected='';this.slots[K].weight=1});for(let i=0;i<n;i++){const K=shuffled[i];const e=this.slots[K].entries;if(!e.length)continue;const pick=e[Math.floor(Math.random()*e.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)}this.renderSlots();this.renderPrompt();this.updateStats();this.showToast('RANDOMIZED: '+n+' CATEGORIES');return}
+    // Otherwise use density setting
+    const density=cs.density;Object.keys(this.slots).forEach(K=>{const e=this.slots[K].entries;if(!e.length)return;if(Math.random()>density){this.slots[K].selected='';return}const pick=e[Math.floor(Math.random()*e.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)});this.renderSlots();this.renderPrompt();this.updateStats();this.showToast('RANDOMIZED: '+Math.round(density*100)+'% DENSITY')
+  },
+
+  calcWeight(entry, cs){
+    let w=entry.weight_suggest||1.0;
+    // Normalize to 0-1 range
+    if(w>1)w=0.7+Math.random()*0.3;
+    if(cs.balance>0)w=w*(1-cs.balance)+1.0*cs.balance;
+    if(cs.extreme>0)w=w<0.5?w*(1-cs.extreme*0.5):Math.min(1,w*(1+cs.extreme*0.3));
+    return Math.min(1,Math.max(0,parseFloat(w.toFixed(1))));
+  },
+
+  smartRandomize(){
+    const concept=document.getElementById('conceptInput').value.toLowerCase().trim();
+    const randPct=parseInt(document.getElementById('randomnessSlider').value)/100;
+    const catCountVal=document.getElementById('catCount').value;
+    const cs=this.getCoreSettings();
+    if(!concept){this.randomize();return}
+
+    const keys=this._allKeys();
+    // If catCount specified, pick exactly N categories with semantic bias
+    if(catCountVal){const n=Math.min(39,Math.max(1,parseInt(catCountVal)));const words=concept.split(/\s+/).filter(w=>w.length>2);const catScores={};keys.forEach(K=>{this.slots[K].entries.forEach(e=>{const text=(e.name+' '+(e.tags||[]).join(' ')).toLowerCase();let score=0;words.forEach(w=>{if(text.includes(w))score+=5;(e.tags||[]).forEach(tag=>{const td=tag.toLowerCase();if(td===w)score+=8})});if(score>0){if(!catScores[K])catScores[K]=[];catScores[K].push({score,e})}})});const scoredKeys=[...keys].map(K=>{const sc=catScores[K];const maxSc=sc?Math.max(...sc.map(x=>x.score)):0;return{K,maxSc}}).sort((a,b)=>b.maxSc-a.maxSc);keys.forEach(K=>{this.slots[K].selected='';this.slots[K].weight=1});for(let i=0;i<n;i++){const K=scoredKeys[i].K;const sc=catScores[K];const useSemantic=Math.random()>randPct;const entries=this.slots[K].entries;if(useSemantic&&sc&&sc.length){sc.sort((a,b)=>b.score-a.score);const top=sc.slice(0,3);const pick=top[Math.floor(Math.random()*top.length)];this.slots[K].selected=pick.e.name;this.slots[K].weight=this.calcWeight(pick.e,cs)}else if(entries.length){const pick=entries[Math.floor(Math.random()*entries.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)}}this.renderSlots();this.renderPrompt();this.updateStats();this.showToast(`SMART: "${concept.toUpperCase()}" | ${n} CATS | ${Math.round((1-randPct)*100)}% SEM`);return}
+
+    // Otherwise density-based
+    const density=cs.density;
+    const words=concept.split(/\s+/).filter(w=>w.length>2);
+    const catScores={};
+    Object.keys(this.slots).forEach(K=>{
+      this.slots[K].entries.forEach((e,idx)=>{
+        const text=(e.name+' '+(e.tags||[]).join(' ')).toLowerCase();let score=0;
+        words.forEach(w=>{if(text.includes(w))score+=5;text.split(/\s+/).forEach(t=>{if(t.includes(w)||w.includes(t))score+=2});(e.tags||[]).forEach(tag=>{const td=tag.toLowerCase();if(td===w)score+=8;if(td.includes(w))score+=4})});
+        if(this.slots[K].name.toLowerCase().includes(words[0]))score+=3;
+        if(score>0){if(!catScores[K])catScores[K]=[];catScores[K].push({idx,score,name:e.name,entry:e})}
+      });
+    });
+    Object.keys(this.slots).forEach(K=>{
+      const entries=this.slots[K].entries;if(!entries.length)return;if(Math.random()>density){this.slots[K].selected='';return}
+      const useSemantic=Math.random()>randPct;
+      if(useSemantic&&catScores[K]){catScores[K].sort((a,b)=>b.score-a.score);const top=catScores[K].slice(0,Math.min(5,catScores[K].length));const pick=top[Math.floor(Math.random()*top.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick.entry,cs)}
+      else{const e=entries[Math.floor(Math.random()*entries.length)];this.slots[K].selected=e.name;this.slots[K].weight=this.calcWeight(e,cs)}
+    });
+    if(cs.coherence>0){const selectedTags=new Set();Object.values(this.slots).forEach(s=>{if(s.selected){const e=s.entries.find(x=>x.name===s.selected);if(e)(e.tags||[]).forEach(t=>selectedTags.add(t.toLowerCase()))}});Object.keys(this.slots).forEach(K=>{if(this.slots[K].selected&&Math.random()<cs.coherence){const matches=this.slots[K].entries.filter(e=>(e.tags||[]).some(t=>selectedTags.has(t.toLowerCase())));if(matches.length>0){this.slots[K].selected=matches[Math.floor(Math.random()*Math.min(3,matches.length))].name}}})}
+    this.renderSlots();this.renderPrompt();this.updateStats();
+    this.showToast(`SMART: "${concept.toUpperCase()}" | ${Math.round((1-randPct)*100)}% SEMANTIC | ${Math.round(density*100)}% DENSITY`);
+  },
+
+  modeRandomize(mode){
+    document.querySelectorAll('.btn.mode').forEach(b=>b.classList.remove('active-mode'));
+    document.getElementById('btn-'+mode)?.classList.add('active-mode');
+    this.currentMode=mode;
+    const cs=this.getCoreSettings();
+    const catCountVal=document.getElementById('catCount').value;
+    const strategies={
+      absurdity:{force:['ABSURD','IMPOSSIBLE','INFINITE ZOOM','FRACTAL UNIVERSE','NON-EUCLIDEAN','GRAVITY DISTORTION','QUANTUM FLICKER','SURREALISM','DADA','PSYCHEDELIC'],contradictions:[['SINISTER','CUTE'],['COLOSSAL','MINIATURE'],['DARK','DIVINE RADIANCE']]},
+      opposing:{contradictions:[['SINISTER','CUTE'],['COLOSSAL','MINIATURE'],['DARK','DIVINE RADIANCE'],['TERRIFYING','WHIMSICAL'],['BRUTALIST','ROCOCO'],['ANCIENT','HOLOGRAPHIC GLOW'],['MELANCHOLIC','ECSTATIC'],['HORROR','KAWAII'],['RUST BLOOM','POLISHED MARBLE'],['CHAOTIC','SERENE']]},
+      emotion:{force:['MELANCHOLIC','ECSTATIC','OMINOUS','HOPEFUL','BROODING','FIERCE','DREAMY','TENSE']},
+      comedy:{force:['ABSURD','KAWAII','WHIMSICAL','PLAYFUL','JESTER','TRICKSTER'],contradictions:[['KAIJU','CHIBI'],['DEMON','CUTE']]},
+      classic:{force:['OIL ON CANVAS','CHIAROSCURO','GOLDEN RATIO','BY GUSTAV KLIMT','BAROQUE','RENAISSANCE PAINTING','PORTRAIT']},
+      horror:{force:['SINISTER','TERRIFYING','HAUNTING','CURSED ILLUMINATION','ELDRITCH','VOID TENDRILS','BLOOD MAGIC','DECAY FIELD','SHADOW MANIFESTATION']},
+      beauty:{force:['ETHEREAL','GOLDEN HOUR','IRIDESCENT','DIVINE RADIANCE','BIOLUMINESCENCE','AURORA LIGHT','GOD RAYS']}
+    };
+    const strat=strategies[mode];
+    const keys=this._allKeys();
+    // If catCount, select exactly N categories
+    if(catCountVal){const n=Math.min(39,Math.max(1,parseInt(catCountVal)));const shuffled=keys.sort(()=>Math.random()-0.5);keys.forEach(K=>{this.slots[K].selected='';this.slots[K].weight=1});for(let i=0;i<n;i++){const K=shuffled[i];const entries=this.slots[K].entries;if(!entries.length)continue;let pick=null;if(strat.force){const forced=entries.find(e=>strat.force.some(f=>e.name.toUpperCase().includes(f)||(e.tags||[]).some(t=>t.toUpperCase().includes(f))));if(forced&&Math.random()<0.5)pick=forced}if(!pick&&strat.contradictions){const pair=strat.contradictions[Math.floor(Math.random()*strat.contradictions.length)];const matched=pair.map(term=>entries.find(e=>e.name.toUpperCase().includes(term)||(e.tags||[]).some(t=>t.toUpperCase().includes(term)))).filter(Boolean);if(matched.length)pick=matched[Math.floor(Math.random()*matched.length)]}if(!pick)pick=entries[Math.floor(Math.random()*entries.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)}this.renderSlots();this.renderPrompt();this.updateStats();this.showToast(`MODE: ${mode.toUpperCase()} | ${n} CATS`);return}
+    // Density-based
+    const density=cs.density;
+    keys.forEach(K=>{const entries=this.slots[K].entries;if(!entries.length)return;if(Math.random()>density){this.slots[K].selected='';return}let pick=null;if(strat.force){const forced=entries.find(e=>strat.force.some(f=>e.name.toUpperCase().includes(f)||(e.tags||[]).some(t=>t.toUpperCase().includes(f))));if(forced&&Math.random()<0.5)pick=forced}if(!pick&&strat.contradictions){const pair=strat.contradictions[Math.floor(Math.random()*strat.contradictions.length)];const matched=pair.map(term=>entries.find(e=>e.name.toUpperCase().includes(term)||(e.tags||[]).some(t=>t.toUpperCase().includes(term)))).filter(Boolean);if(matched.length)pick=matched[Math.floor(Math.random()*matched.length)]}if(!pick)pick=entries[Math.floor(Math.random()*entries.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)});
+    this.renderSlots();this.renderPrompt();this.updateStats();this.showToast(`MODE: ${mode.toUpperCase()} | ${Math.round(density*100)}% DENSITY`);
+  },
+
+  search(q){
+    q=q.toLowerCase().trim();
+    if(!q){this.activeTab='ALL';this.renderTabs();this.renderSlots();return}
+    const c=document.getElementById('slotsContainer');let h='';
+    this._allKeys().forEach(K=>{
+      const s=this.slots[K];const m=s.entries.filter(e=>e.name.toLowerCase().includes(q)||(e.tags&&e.tags.some(t=>t.toLowerCase().includes(q))));
+      if(m.length){h+=`<div style="padding:6px 10px;font-size:8px;color:var(--cyan);letter-spacing:2px;border-bottom:1px solid var(--bg3);margin-top:6px">${s.num} // ${s.name} (${m.length})</div>`;m.forEach(e=>{const sel=s.selected===e.name;h+=`<div style="padding:3px 10px 3px 36px;font-size:10px;color:${sel?'var(--cyan)':'var(--fg2)'};cursor:none;border-bottom:1px solid var(--bg3)" onclick="app.setSlot('${K}','${e.name.replace(/'/g,"\\'")}')">${sel?'>':' '} ${e.name.toUpperCase()} ${e.weight_suggest?`<span style="color:var(--fg3)">::${e.weight_suggest}</span>`:''}</div>`});}
+    });
+    c.innerHTML=h||'<div style="padding:20px;color:var(--fg3);text-align:center;font-size:10px">NO MATCHES</div>';
+  },
+
+  renderPrompt(){
+    const d=document.getElementById('promptDisplay'),s=document.getElementById('weightSummary');
+    const sw=document.getElementById('showWeights').checked;
+    const a=Object.keys(this.slots).filter(K=>this.slots[K].selected).map(K=>({...this.slots[K]}));
+    if(!a.length){d.innerHTML='<span class="empty">SELECT MODIFIERS TO BUILD YOUR PROMPT...</span>';s.innerHTML='TOTAL WEIGHT: <span>0.0</span> | SEGMENTS: <span>0</span>';return}
+    const text=a.map((x,i)=>{const sp=i<a.length-1?' ':' | ';return`${x.selected.toUpperCase()}${sw?` ::${x.weight.toFixed(1)}`:''}${sw?'':sp}`}).join(' ').replace(/\s+/g,' ').trim();
+    d.textContent=text;
+    const tw=a.reduce((sum,x)=>sum+x.weight,0);
+    s.innerHTML=`TOTAL WEIGHT: <span>${tw.toFixed(1)}</span> | SEGMENTS: <span>${a.length}</span> | AVG: <span>${(tw/a.length).toFixed(1)}</span> | MODE: <span>${this.currentMode||'MANUAL'}</span>`;
+  },
+
+  copyPrompt(){const d=document.getElementById('promptDisplay');const t=d.textContent||d.innerText||'';if(!t.trim()||t.includes('SELECT MODIFIERS')){this.showToast('NOTHING TO COPY',true);return}navigator.clipboard.writeText(t.trim()).then(()=>this.showToast('PROMPT COPIED'))},
+
+  savePreset(){const dtxt=document.getElementById('promptDisplay');const t=dtxt.textContent||dtxt.innerText||'';if(!t.trim()||t.includes('SELECT MODIFIERS')){this.showToast('NOTHING TO SAVE',true);return}const n=prompt('PRESET NAME:');if(!n)return;const d={};Object.keys(this.slots).forEach(K=>{if(this.slots[K].selected)d[K]={name:this.slots[K].selected,weight:this.slots[K].weight}});this.presets.push({name:n.toUpperCase(),data:d,date:new Date().toISOString()});localStorage.setItem('aimas_presets',JSON.stringify(this.presets));this.renderPresets();this.showToast('PRESET SAVED')},
+  loadPreset(i){const p=this.presets[i];if(!p)return;Object.keys(this.slots).forEach(L=>{if(p.data[L]){this.slots[L].selected=p.data[L].name;this.slots[L].weight=p.data[L].weight}else{this.slots[L].selected='';this.slots[L].weight=1}});this.renderSlots();this.renderPrompt();this.updateStats();this.showToast(`LOADED: ${p.name}`)},
+  deletePreset(i){this.presets.splice(i,1);localStorage.setItem('aimas_presets',JSON.stringify(this.presets));this.renderPresets()},
+  renderPresets(){const l=document.getElementById('presetList');if(!this.presets.length){l.innerHTML='<span style="color:var(--fg3);font-size:9px">NO PRESETS</span>';return}l.innerHTML=this.presets.map((p,i)=>`<span class="preset-chip" onclick="app.loadPreset(${i})">${p.name}<span class="del" onclick="event.stopPropagation();app.deletePreset(${i})">X</span></span>`).join('')},
+
+  updateStats(){let t=0;Object.values(this.corpus?.categories||{}).forEach(c=>t+=c.entries?.length||0);document.getElementById('stat-entries').textContent=t;document.getElementById('stat-active').textContent=Object.values(this.slots).filter(s=>s.selected).length;document.getElementById('stat-cats').textContent=Object.keys(this.corpus?.categories||{}).length},
+  showToast(m,e){const t=document.getElementById('toast');t.textContent=m;t.className='toast'+(e?' error':'')+' show';setTimeout(()=>t.classList.remove('show'),2500)},
+  updateSmartLabel(){}
+};
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+app.init();
+</script>
+</body>
+</html>
