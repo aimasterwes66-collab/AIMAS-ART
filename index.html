@@ -180,11 +180,11 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
 <!-- HEADER -->
 <header class="header">
   <div class="header-top">
-    <div class="brand">AIMAS//<span>PROMPT.CONSTRUCT</span><small>01-39 VISUAL MODIFIER ONTOLOGY // 1637 ENTRIES</small></div>
+    <div class="brand">AIMAS//<span>PROMPT.CONSTRUCT</span><small>01-110 VISUAL MODIFIER ONTOLOGY // 2648 ENTRIES</small></div>
     <div class="header-stats">
-      <div>CATS: <span id="stat-cats">39</span></div>
-      <div>NODES: <span id="stat-entries">1637</span></div>
-      <div>ACTIVE: <span id="stat-active">0</span>/39</div>
+      <div>CATS: <span id="stat-cats">110</span></div>
+      <div>NODES: <span id="stat-entries">2648</span></div>
+      <div>ACTIVE: <span id="stat-active">0</span>/<span id="stat-total-cats">110</span></div>
     </div>
   </div>
 </header>
@@ -193,7 +193,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
   <!-- LEFT -->
   <div class="slots-panel">
     <div class="slots-header">
-      <div class="slots-title">// CONSTRUCT PROMPT (01-39)</div>
+      <div class="slots-title">// CONSTRUCT PROMPT (01-110)</div>
       <div class="slots-controls">
         <button class="btn danger" onclick="app.clearAll()">CLEAR</button>
         <button class="btn" onclick="app.randomize()">RANDOM</button>
@@ -213,8 +213,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
         </div>
         <div class="slider-group" style="margin-left:8px">
           <span class="slider-label">CATS</span>
-          <input type="text" id="catCount" class="smart-input" style="width:36px;min-width:36px;text-align:center;padding:5px" maxlength="2" value="" placeholder="##" oninput="this.value=this.value.replace(/[^0-9]/g,'')" title="NUMBER OF CATEGORIES (1-39). LEAVE EMPTY FOR AUTO.">
-          <span class="slider-label">/39</span>
+          <input type="text" id="catCount" class="smart-input" style="width:36px;min-width:36px;text-align:center;padding:5px" maxlength="3" value="" placeholder="###" oninput="this.value=this.value.replace(/[^0-9]/g,'')" title="NUMBER OF CATEGORIES (1-110). LEAVE EMPTY FOR AUTO.">
+          <span class="slider-label">/110</span>
         </div>
         <button class="btn primary" style="font-size:9px;padding:7px 16px" onclick="app.smartRandomize()">SMART RANDOMIZE</button>
       </div>
@@ -265,7 +265,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;b
       </div>
     </div>
 
-    <input type="text" class="search-box" id="globalSearch" placeholder="SEARCH ALL 1637 MODIFIERS..." oninput="app.search(this.value)">
+    <input type="text" class="search-box" id="globalSearch" placeholder="SEARCH ALL 2648 MODIFIERS..." oninput="app.search(this.value)">
 
     <div class="toggle-row">
       <label><input type="checkbox" id="showWeights" checked onchange="app.renderPrompt()"> SHOW WEIGHTS</label>
@@ -315,7 +315,7 @@ const app={
     setTimeout(()=>document.getElementById('splash').classList.add('hidden'),1000);
   },
 
-  fallbackCorpus(){const c={};for(let i=1;i<=39;i++){const k=String(i).padStart(2,'0');c[k]={name:'CAT '+k,entries:[{name:'M'+k,tags:['default']}]}};return{categories:c}},
+  fallbackCorpus(){const c={};for(let i=1;i<=110;i++){const k=String(i).padStart(2,'0');c[k]={name:'CAT '+k,entries:[{name:'M'+k,tags:['default']}]}};return{categories:c}},
 
   buildSlots(){this._allKeys().forEach((K,idx)=>{const c=this.corpus.categories[K];const num=String(idx+1).padStart(2,'0');this.slots[K]={key:K,num:num,name:c?.name||'CAT '+K,desc:c?.description||'',weight:1,selected:'',entries:c?.entries||[]}})},
 
@@ -349,7 +349,7 @@ const app={
     const catCountVal=document.getElementById('catCount').value;
     const keys=this._allKeys();
     // If catCount specified, pick exactly N categories
-    if(catCountVal){const n=Math.min(39,Math.max(1,parseInt(catCountVal)));const shuffled=keys.sort(()=>Math.random()-0.5);keys.forEach(K=>{this.slots[K].selected='';this.slots[K].weight=1});for(let i=0;i<n;i++){const K=shuffled[i];const e=this.slots[K].entries;if(!e.length)continue;const pick=e[Math.floor(Math.random()*e.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)}this.renderSlots();this.renderPrompt();this.updateStats();this.showToast('RANDOMIZED: '+n+' CATEGORIES');return}
+    if(catCountVal){const n=Math.min(110,Math.max(1,parseInt(catCountVal)));const shuffled=keys.sort(()=>Math.random()-0.5);keys.forEach(K=>{this.slots[K].selected='';this.slots[K].weight=1});for(let i=0;i<n;i++){const K=shuffled[i];const e=this.slots[K].entries;if(!e.length)continue;const pick=e[Math.floor(Math.random()*e.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)}this.renderSlots();this.renderPrompt();this.updateStats();this.showToast('RANDOMIZED: '+n+' CATEGORIES');return}
     // Otherwise use density setting
     const density=cs.density;Object.keys(this.slots).forEach(K=>{const e=this.slots[K].entries;if(!e.length)return;if(Math.random()>density){this.slots[K].selected='';return}const pick=e[Math.floor(Math.random()*e.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)});this.renderSlots();this.renderPrompt();this.updateStats();this.showToast('RANDOMIZED: '+Math.round(density*100)+'% DENSITY')
   },
@@ -372,7 +372,7 @@ const app={
 
     const keys=this._allKeys();
     // If catCount specified, pick exactly N categories with semantic bias
-    if(catCountVal){const n=Math.min(39,Math.max(1,parseInt(catCountVal)));const words=concept.split(/\s+/).filter(w=>w.length>2);const catScores={};keys.forEach(K=>{this.slots[K].entries.forEach(e=>{const text=(e.name+' '+(e.tags||[]).join(' ')).toLowerCase();let score=0;words.forEach(w=>{if(text.includes(w))score+=5;(e.tags||[]).forEach(tag=>{const td=tag.toLowerCase();if(td===w)score+=8})});if(score>0){if(!catScores[K])catScores[K]=[];catScores[K].push({score,e})}})});const scoredKeys=[...keys].map(K=>{const sc=catScores[K];const maxSc=sc?Math.max(...sc.map(x=>x.score)):0;return{K,maxSc}}).sort((a,b)=>b.maxSc-a.maxSc);keys.forEach(K=>{this.slots[K].selected='';this.slots[K].weight=1});for(let i=0;i<n;i++){const K=scoredKeys[i].K;const sc=catScores[K];const useSemantic=Math.random()>randPct;const entries=this.slots[K].entries;if(useSemantic&&sc&&sc.length){sc.sort((a,b)=>b.score-a.score);const top=sc.slice(0,3);const pick=top[Math.floor(Math.random()*top.length)];this.slots[K].selected=pick.e.name;this.slots[K].weight=this.calcWeight(pick.e,cs)}else if(entries.length){const pick=entries[Math.floor(Math.random()*entries.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)}}this.renderSlots();this.renderPrompt();this.updateStats();this.showToast(`SMART: "${concept.toUpperCase()}" | ${n} CATS | ${Math.round((1-randPct)*100)}% SEM`);return}
+    if(catCountVal){const n=Math.min(110,Math.max(1,parseInt(catCountVal)));const words=concept.split(/\s+/).filter(w=>w.length>2);const catScores={};keys.forEach(K=>{this.slots[K].entries.forEach(e=>{const text=(e.name+' '+(e.tags||[]).join(' ')).toLowerCase();let score=0;words.forEach(w=>{if(text.includes(w))score+=5;(e.tags||[]).forEach(tag=>{const td=tag.toLowerCase();if(td===w)score+=8})});if(score>0){if(!catScores[K])catScores[K]=[];catScores[K].push({score,e})}})});const scoredKeys=[...keys].map(K=>{const sc=catScores[K];const maxSc=sc?Math.max(...sc.map(x=>x.score)):0;return{K,maxSc}}).sort((a,b)=>b.maxSc-a.maxSc);keys.forEach(K=>{this.slots[K].selected='';this.slots[K].weight=1});for(let i=0;i<n;i++){const K=scoredKeys[i].K;const sc=catScores[K];const useSemantic=Math.random()>randPct;const entries=this.slots[K].entries;if(useSemantic&&sc&&sc.length){sc.sort((a,b)=>b.score-a.score);const top=sc.slice(0,3);const pick=top[Math.floor(Math.random()*top.length)];this.slots[K].selected=pick.e.name;this.slots[K].weight=this.calcWeight(pick.e,cs)}else if(entries.length){const pick=entries[Math.floor(Math.random()*entries.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)}}this.renderSlots();this.renderPrompt();this.updateStats();this.showToast(`SMART: "${concept.toUpperCase()}" | ${n} CATS | ${Math.round((1-randPct)*100)}% SEM`);return}
 
     // Otherwise density-based
     const density=cs.density;
@@ -415,7 +415,7 @@ const app={
     const strat=strategies[mode];
     const keys=this._allKeys();
     // If catCount, select exactly N categories
-    if(catCountVal){const n=Math.min(39,Math.max(1,parseInt(catCountVal)));const shuffled=keys.sort(()=>Math.random()-0.5);keys.forEach(K=>{this.slots[K].selected='';this.slots[K].weight=1});for(let i=0;i<n;i++){const K=shuffled[i];const entries=this.slots[K].entries;if(!entries.length)continue;let pick=null;if(strat.force){const forced=entries.find(e=>strat.force.some(f=>e.name.toUpperCase().includes(f)||(e.tags||[]).some(t=>t.toUpperCase().includes(f))));if(forced&&Math.random()<0.5)pick=forced}if(!pick&&strat.contradictions){const pair=strat.contradictions[Math.floor(Math.random()*strat.contradictions.length)];const matched=pair.map(term=>entries.find(e=>e.name.toUpperCase().includes(term)||(e.tags||[]).some(t=>t.toUpperCase().includes(term)))).filter(Boolean);if(matched.length)pick=matched[Math.floor(Math.random()*matched.length)]}if(!pick)pick=entries[Math.floor(Math.random()*entries.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)}this.renderSlots();this.renderPrompt();this.updateStats();this.showToast(`MODE: ${mode.toUpperCase()} | ${n} CATS`);return}
+    if(catCountVal){const n=Math.min(110,Math.max(1,parseInt(catCountVal)));const shuffled=keys.sort(()=>Math.random()-0.5);keys.forEach(K=>{this.slots[K].selected='';this.slots[K].weight=1});for(let i=0;i<n;i++){const K=shuffled[i];const entries=this.slots[K].entries;if(!entries.length)continue;let pick=null;if(strat.force){const forced=entries.find(e=>strat.force.some(f=>e.name.toUpperCase().includes(f)||(e.tags||[]).some(t=>t.toUpperCase().includes(f))));if(forced&&Math.random()<0.5)pick=forced}if(!pick&&strat.contradictions){const pair=strat.contradictions[Math.floor(Math.random()*strat.contradictions.length)];const matched=pair.map(term=>entries.find(e=>e.name.toUpperCase().includes(term)||(e.tags||[]).some(t=>t.toUpperCase().includes(term)))).filter(Boolean);if(matched.length)pick=matched[Math.floor(Math.random()*matched.length)]}if(!pick)pick=entries[Math.floor(Math.random()*entries.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)}this.renderSlots();this.renderPrompt();this.updateStats();this.showToast(`MODE: ${mode.toUpperCase()} | ${n} CATS`);return}
     // Density-based
     const density=cs.density;
     keys.forEach(K=>{const entries=this.slots[K].entries;if(!entries.length)return;if(Math.random()>density){this.slots[K].selected='';return}let pick=null;if(strat.force){const forced=entries.find(e=>strat.force.some(f=>e.name.toUpperCase().includes(f)||(e.tags||[]).some(t=>t.toUpperCase().includes(f))));if(forced&&Math.random()<0.5)pick=forced}if(!pick&&strat.contradictions){const pair=strat.contradictions[Math.floor(Math.random()*strat.contradictions.length)];const matched=pair.map(term=>entries.find(e=>e.name.toUpperCase().includes(term)||(e.tags||[]).some(t=>t.toUpperCase().includes(term)))).filter(Boolean);if(matched.length)pick=matched[Math.floor(Math.random()*matched.length)]}if(!pick)pick=entries[Math.floor(Math.random()*entries.length)];this.slots[K].selected=pick.name;this.slots[K].weight=this.calcWeight(pick,cs)});
