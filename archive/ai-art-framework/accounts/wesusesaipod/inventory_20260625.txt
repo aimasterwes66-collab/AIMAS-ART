@@ -1,0 +1,14 @@
+# Content Inventory for wesusesaipod
+# Generated on Thu Jun 25 15:34:42 PDT 2026
+
+## Collections Found:
+- [ ] List collections here
+
+## Individual Images:
+- [ ] List individual images here
+
+## Prompts Found:
+- [ ] List prompt files here
+
+## Notes:
+- [ ] Add any relevant notes here

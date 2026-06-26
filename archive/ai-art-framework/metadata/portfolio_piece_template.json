@@ -1,0 +1,43 @@
+{
+  "piece_id": "",
+  "title": "",
+  "creation_date": "",
+  "source_account": "",
+  "image_file": "",
+  "prompt_file": "",
+  "framework_mapping": {
+    "subject_matter": {
+      "primary_subject": {"value": "", "weight": 1.0},
+      "perspective_viewpoint": {"value": "", "weight": 1.0},
+      "quantity_number": {"value": "", "weight": 1.0},
+      "action_activity": {"value": "", "weight": 1.0},
+      "details_features": {"value": "", "weight": 1.0},
+      "anatomy_structure": {"value": "", "weight": 1.0},
+      "expression_mood": {"value": "", "weight": 1.0},
+      "interaction_relationship": {"value": "", "weight": 1.0},
+      "narrative_context": {"value": "", "weight": 1.0}
+    },
+    "style_technique": {
+      "artistic_movement": {"value": "", "weight": 1.0},
+      "medium_format": {"value": "", "weight": 1.0},
+      "rendering_technique": {"value": "", "weight": 1.0},
+      "visual_texture": {"value": "", "weight": 1.0},
+      "color_treatment": {"value": "", "weight": 1.0},
+      "brushwork_stroke": {"value": "", "weight": 1.0},
+      "lighting_style": {"value": "", "weight": 1.0},
+      "composition_approach": {"value": "", "weight": 1.0},
+      "finishing_style": {"value": "", "weight": 1.0}
+    }
+  },
+  "weight_assignments": [],
+  "nested_prompts": [],
+  "cross_references": [],
+  "ar_integration": {
+    "3d_compatible": false,
+    "interactive_elements": [],
+    "spatial_positioning": ""
+  },
+  "tags": [],
+  "collections": [],
+  "status": "unprocessed"
+}

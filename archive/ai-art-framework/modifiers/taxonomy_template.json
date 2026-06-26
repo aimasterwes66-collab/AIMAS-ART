@@ -1,0 +1,32 @@
+{
+  "modifier_taxonomy": {
+    "visual_characteristics": {
+      "color_properties": [],
+      "texture_types": [],
+      "shape_attributes": [],
+      "size_variations": [],
+      "positioning_elements": []
+    },
+    "artistic_properties": {
+      "style_classifications": [],
+      "technique_categories": [],
+      "medium_types": [],
+      "historical_periods": [],
+      "cultural_influences": []
+    },
+    "technical_aspects": {
+      "resolution_qualities": [],
+      "rendering_methods": [],
+      "platform_specifications": [],
+      "model_preferences": [],
+      "parameter_sets": []
+    },
+    "contextual_elements": {
+      "environmental_factors": [],
+      "narrative_components": [],
+      "emotional_indicators": [],
+      "symbolic_meanings": [],
+      "functional_purposes": []
+    }
+  }
+}
