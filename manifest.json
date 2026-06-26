@@ -1,6 +1,6 @@
 {
-  "name": "AIMAS Prompt Construct",
-  "short_name": "AIMAS",
+  "name": "AIMAS Prompt Construct v6",
+  "short_name": "AIMAS v6",
   "description": "A-Z Visual Modifier Prompt Builder",
   "start_url": "/",
   "display": "standalone",
@@ -12,5 +12,6 @@
       "sizes": "192x192",
       "type": "image/svg+xml"
     }
-  ]
+  ],
+  "version": "v6"
 }
